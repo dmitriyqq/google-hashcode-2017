@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_visual" default="compile.module.visual">
+  <dirname property="module.visual.basedir" file="${ant.file.module_visual}"/>
+  
+  <property name="module.jdk.home.visual" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.visual" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.visual" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.visual" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="visual.output.dir" value="${module.visual.basedir}/out/production/visual"/>
+  <property name="visual.testoutput.dir" value="${module.visual.basedir}/out/test/visual"/>
+  
+  <path id="visual.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="visual.module.production.classpath">
+    <path refid="${module.jdk.classpath.visual}"/>
+    <path refid="library.core.classpath"/>
+  </path>
+  
+  <path id="visual.runtime.production.module.classpath">
+    <pathelement location="${visual.output.dir}"/>
+    <path refid="library.core.classpath"/>
+  </path>
+  
+  <path id="visual.module.classpath">
+    <path refid="${module.jdk.classpath.visual}"/>
+    <pathelement location="${visual.output.dir}"/>
+    <path refid="library.core.classpath"/>
+  </path>
+  
+  <path id="visual.runtime.module.classpath">
+    <pathelement location="${visual.testoutput.dir}"/>
+    <pathelement location="${visual.output.dir}"/>
+    <path refid="library.core.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.visual">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.visual">
+    <patternset refid="excluded.from.module.visual"/>
+  </patternset>
+  
+  <path id="visual.module.sourcepath">
+    <dirset dir="${module.visual.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.visual" depends="compile.module.visual.production,compile.module.visual.tests" description="Compile module visual"/>
+  
+  <target name="compile.module.visual.production" depends="register.custom.compilers" description="Compile module visual; production classes">
+    <mkdir dir="${visual.output.dir}"/>
+    <javac2 destdir="${visual.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.visual}/javac">
+      <compilerarg line="${compiler.args.visual}"/>
+      <bootclasspath refid="visual.module.bootclasspath"/>
+      <classpath refid="visual.module.production.classpath"/>
+      <src refid="visual.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.visual"/>
+    </javac2>
+    
+    <copy todir="${visual.output.dir}">
+      <fileset dir="${module.visual.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.visual.tests" depends="register.custom.compilers,compile.module.visual.production" description="compile module visual; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.visual" description="cleanup module">
+    <delete dir="${visual.output.dir}"/>
+    <delete dir="${visual.testoutput.dir}"/>
+  </target>
+</project>
