@@ -1,3 +1,9 @@
 #!/bin/sh
 
-java -jar ./visual/out/artifacts/visual_jar/visual.jar /home/dima/hashcode/code/in/$1.in /home/dima/hashcode/code/out/$1.out
+in="./in/$1.in"
+out="./out/$1.out"
+
+echo $in
+echo $out
+
+java -jar ./visual/out/artifacts/visual_jar/visual.jar "$in" "$out"
