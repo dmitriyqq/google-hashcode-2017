@@ -4,7 +4,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 public class Config {
-    public static final int cellSize = 50;
+    public static int cellSize = 50;
     public static int w, h, l, r;
     public static PImage tomatoImage;
     public static PImage mushroomImage;

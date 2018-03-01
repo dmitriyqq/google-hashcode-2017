@@ -1,8 +1,7 @@
 package com.dimasmemas;
 import processing.core.PApplet;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -52,7 +51,7 @@ public class Main extends PApplet {
             Config.l = input.nextInt(); // min ingredient on each slice
             Config.r = input.nextInt(); // maximum cells of slice
 
-
+            Config.cellSize = min(width/Config.w, height/Config.h);
             strings = new String[Config.h];
 
             for(int i = 0; i < Config.h; i++){
@@ -69,6 +68,7 @@ public class Main extends PApplet {
             println("Grid file not found");
         }
         importSlices("slice.txt");
+        export(slices);
     }
 
     public void draw(){
@@ -103,11 +103,16 @@ public class Main extends PApplet {
         try{
             Scanner sc = new Scanner(new File(slicesInputPath));
             int n = sc.nextInt();
+            System.out.println( n + " slices in file");
             for(int i = 0; i< n; i++) {
                 int x,y,x2,y2;
+                if(!sc.hasNext()) break;
                 y = sc.nextInt();
+                if(!sc.hasNext()) break;
                 x = sc.nextInt();
+                if(!sc.hasNext()) break;
                 y2 = sc.nextInt();
+                if(!sc.hasNext()) break;
                 x2 = sc.nextInt();
                 //println(x + " " + y + " " + w + " " + h);
                 slices.add(new Slice(x,y,x2 - x+1,y2 - y+1));
@@ -117,6 +122,33 @@ public class Main extends PApplet {
 
         } catch (FileNotFoundException e){
             println("File not found");
+        }
+    }
+
+    public void export(ArrayList<Slice> sl){
+        try{
+
+
+        File out = new File(slicesInputPath);
+            PrintWriter writer = new PrintWriter(out);
+
+        int count = 0;
+        ArrayList <Slice> o = new ArrayList<Slice>();
+        for(Slice e : sl){
+                o.add(e);
+        }
+        System.out.println("ol.size = " + o.size());
+        writer.write((o.size()) + "\n");
+            for (int i = slices.size()-1; i >= 0; i--) {
+                // test valid
+                Slice s1 = slices.get(i);
+                count++;
+                writer.write(s1.y + " " + s1.x + " " + (s1.y +s1.h - 1) + " " + (s1.x + s1.w -1 ) + "\n");
+            }
+            writer.flush();
+            System.out.println("writed " + count + " slices");
+        }catch (IOException e){
+            e.printStackTrace();
         }
     }
 }

@@ -30,7 +30,7 @@ public class Grid {
             for(int j = 0; j < w; j++){
 
                 grid[i*w + j] = (s[i].charAt(j) == 'T');
-                p.println(grid[i*w + j]);
+                //p.println(grid[i*w + j]);
             }
         }
     }
