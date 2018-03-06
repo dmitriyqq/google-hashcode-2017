@@ -1,15 +1,9 @@
 package com.dimasmemas;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Slice {
-    public int x,y,w,h;
-
-    boolean correct = false;
-
-    public static Random generator = new Random(0);
-    Slice(){}
+    public int x, y, w, h;
 
     Slice(int x, int y, int w, int h){
         this.x = x;
@@ -18,165 +12,71 @@ public class Slice {
         this.h = h;
     }
 
-    Slice(Slice other){
-        this.x = other.x;
-        this.y = other.y;
-        this.w = other.w;
-        this.h = other.h;
+    public String toString(){
+        String s = "(";
+        s += x + ", ";
+        s += y + ", ";
+        s += w + ", ";
+        s += h + ")";
+        return s;
     }
 
-    public static Slice getRandom(){
-
-        int x = (int) Math.round(generator.nextFloat()*(Config.w-1));
-        int y = (int) Math.round(generator.nextFloat()*(Config.h-1));
-
-        int maxW = Math.min(Config.w - x - 1, Config.r / 2);
-        int w = 1 +  (int) Math.round(generator.nextFloat()*(maxW));
-        int maxH = Math.min(Config.h - y - 1, Config.r / w);
-
-        int h = 1 + (int) Math.round(generator.nextFloat()*(maxH));
-
-        //System.out.println("New com.dimasmemas.Slice : " + x + " " + y +
-        //                " " + (x + w) + " " + (y  + h) );
-
-        return new Slice(x, y, w, h);
-
-    }
-
-    public static ArrayList<Slice> getRandomList(int n){
-        ArrayList <Slice> al = new ArrayList<Slice>();
-        for(int i = 0; i< n; i++)
-            al.add(Slice.getRandom());
-        return al;
-    }
-
-
-
-    boolean intersect(Slice other){
-        Vector2i[] corners = new Vector2i[4];
-
-        // top left;
-        corners[0] = new Vector2i(this.x, this.y);
-
-        // top right
-        corners[1] = new Vector2i(this.x + this.w, this.y);
-
-        // bottom right
-        corners[2] = new Vector2i(this.x + this.w, this.y + this.h);
-
-        // bottom left
-        corners[3] = new Vector2i(this.x, this.y + this.h);
-
-        if(this.x == other.x &&
-           this.y == other.y &&
-           this.w == other.w &&
-           this.h == other.h)
-            return true;
-
-
-        for(int i = 0; i < 4; i++){
-            if(((corners[i].x > other.x && corners[i].x < other.x + other.w)
-             &&(corners[i].y > other.y && corners[i].y < other.y + other.h)
-                    ||(((corners[i].x == other.x || corners[i].x == other.x+other.w))
-                    &&(corners[i].y > other.y && corners[i].y < other.y + other.h)))
-                    ||(((corners[i].y == other.y || corners[i].y == other.y+other.h))
-                    &&(corners[i].x > other.x && corners[i].x < other.x + other.w))
-                    )
-                return true;
-        }
-
-
-
-        return false;
-    }
-
-    public void setCorrect(boolean c){
-        correct = c;
-    }
-
-    public boolean isCorrect(){
-        return correct;
-    }
-
-    public int getScore(){
-        if(correct){
-            return w*h;
-        }else{
-            return -5;
-        }
-    }
-
-
-    public static void testCorrect(ArrayList<Slice> slices, Grid grid){
-
+    public static int calculateScore(ArrayList<Slice> slices, Grid grid){
+        int totalScore = 0;
         for (int i = slices.size()-1; i >= 0; i--) {
-            // test valid
+
             Slice s1 = slices.get(i);
             if (s1.x >= 0 && s1.x < Config.w && s1.y >= 0 && s1.y < Config.h &&
-                    (s1.x + s1.w) < Config.w && (s1.y + s1.h) < Config.h) {
+               (s1.x + s1.w) <= Config.w && (s1.y + s1.h) <= Config.h) {
 
             }else{
-                System.out.println("OUT OF BOUNDS");
+                System.out.println("Removing slice out of grid:" + s1.toString());
                 slices.remove(s1);
             }
         }
+        int[][] array = new int[grid.getH()][grid.getW()];
+        for (int i = 0; i < grid.getH(); i++) {
+            for (int j = 0; j < grid.getW(); j++) {
+                array[i][j] = 0;
+            }
+        }
 
-        try {
-            int[][] array = new int[grid.getH()][grid.getW()];
-
-            for (int i = 0; i < grid.getH(); i++) {
-                for (int j = 0; j < grid.getW(); j++) {
-                    array[i][j] = 0;
+        for (int q = slices.size()-1; q >= 0; q--) {
+            Slice s1 = slices.get(q);
+            int numT = 0, numM = 0;
+            for (int i = s1.y; i < s1.y + s1.h; i++) {
+                for (int j = s1.x; j < s1.x + s1.w; j++) {
+                    if (grid.get(j, i)) {
+                        numT++;
+                    } else {
+                        numM++;
+                    }
                 }
             }
 
-            for (int q = slices.size()-1; q >= 0; q--) {
-
-                Slice s1 = slices.get(q);
-
-
-
-                int numT = 0, numM = 0;
-                for (int i = s1.y; i < s1.y + s1.h; i++) {
-                    for (int j = s1.x; j < s1.x + s1.w; j++) {
-                        if (grid.get(j, i)) {
-                            numT++;
-                        } else {
-                            numM++;
-                        }
-                    }
-                }
-
-                boolean intersect = false;
-                if ((s1.w * s1.h > Config.r)
-                        || (Math.min(numT, numM) < Config.l)) {
-                    s1.setCorrect(false);
-                    System.out.println(s1.w * s1.h + " " + numM + " " + numT);
-
-                } else {
-                    boolean failed = false;
-                    for (int i = s1.x; i < s1.x + s1.w; i++) {
-                        for (int j = s1.y; j < s1.y + s1.h; j++) {
-                            if (array[j][i] != 0) {
-                                intersect = true;
-                                slices.remove(s1);
-                                failed = true;
-                            }
-                            if(failed) break;
-                            array[j][i]++;
+            if ((s1.w * s1.h > Config.r)|| (Math.min(numT, numM) < Config.l)) {
+                System.out.println("Not enough ingredients on slice " +  s1.toString());
+                slices.remove(s1);
+            } else {
+                boolean failed = false;
+                for (int i = s1.x; i < s1.x + s1.w; i++) {
+                    for (int j = s1.y; j < s1.y + s1.h; j++) {
+                        if (array[j][i] != 0) {
+                            System.out.println("Slice intersect " + s1.toString() + " at " + i + "," +j);
+                            slices.remove(s1);
+                            failed = true;
                         }
                         if(failed) break;
+                        array[j][i]++;
                     }
-
-                    if (!intersect)
-                        s1.setCorrect(true);
+                    if(failed) break;
                 }
-
+                if(!failed){
+                    totalScore+=s1.w*s1.h;
+                }
             }
-        }catch (IndexOutOfBoundsException e){
-            System.out.println("bad slice");
-            e.printStackTrace();
         }
+        return totalScore;
     }
 
 }

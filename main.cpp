@@ -105,7 +105,7 @@ std::shared_ptr<std::vector<Slice>> divideBest(int x, int y, int cw, int ch, int
     }else{
         // divide vertically
         int bestSize = 0;
-        std::shared_ptr<std::vector<Slice> > v = std::make_unique<std::vector<Slice> >(), b1,b2;
+        std::shared_ptr<std::vector<Slice> > v = std::make_shared<std::vector<Slice> >(), b1,b2;
 
         for(int i = 1; i < cw; i++){
             std::shared_ptr<std::vector<Slice> > l,r;
@@ -158,6 +158,8 @@ void exportSlices(const std::string output, std::vector<Slice>& sl){
 }
 
 void solve(const std::string & input, const std::string & output){
+
+    const int kBlock = 8;
     std::ifstream in(input);
 
     in>>h>>w>>l>>r;
@@ -175,9 +177,7 @@ void solve(const std::string & input, const std::string & output){
             pizza[i*w + j] = c == 'T' ? 1 : 0;
             up_sum_tomatoes[i*w + j] = (i != 0)
                                        ? (pizza[i*w + j] + up_sum_tomatoes[(i-1)*w + j])
-                                       : ((c == 'T') ?1:0);
-
-
+                                       : ((c == 'T') ? 1 : 0);
         }
     }
 
@@ -200,18 +200,23 @@ void solve(const std::string & input, const std::string & output){
         }
     }
 
-
-
-    const int kBlock = 8;
-
     std::vector <Slice> sl; // fixed slices
 
     time_t start = clock();
 
     // For small pizza run full search
     if(w*h <= kBlock*kBlock){
+
         std::cout<<"Small pizza"<<std::endl;
-        divideFull(0, 0, w, h, sl);
+
+        int size = 0;
+
+        auto cv = divideBest(0, 0, w, h, size);
+
+        if(size != 0){
+            sl.insert(sl.begin(), cv->begin(), cv->end());
+        }
+
         exportSlices(output, sl);
         return;
     }
@@ -219,13 +224,10 @@ void solve(const std::string & input, const std::string & output){
     // For small l and r, we can divide pizza in blocks, and run full search on each block
     // I think it will be good enough
 
-
-    int i = 0;
-    int j = 0;
+    int i = 0, j = 0;
 
     if(std::max(l,r) < kBlock*kBlock/4){
         std::cout<<"Big pizza with small slices"<<std::endl;
-
         int count = 0;
         int total = (h/kBlock)*(w/kBlock);
         for(i = 0; i < h; i+=kBlock){
@@ -233,17 +235,23 @@ void solve(const std::string & input, const std::string & output){
                 int size = 0;
                 count++;
                 std::shared_ptr <std::vector<Slice> > cv;
+
                 std::cout<<"runnin block "<<count<<"/"<<total<<std::endl;
+
                 cv  = divideBest(j, i, kBlock, kBlock, size);
-                std::cout<<"size "<<size<<std::endl;
+
+                std::cout<<"size = "<<size<<std::endl;
                 if(size)
                     sl.insert(sl.end(), cv->begin(), cv->end());
                 exportSlices(output, sl);
             }
             int size = 0;
-            std::cout<<"runnin subblock "<<count<<"/"<<total<<std::endl;
+
+            std::cout<<"runnin subblock "<<std::endl;
+
             std::shared_ptr <std::vector<Slice> >  cv  = divideBest(j-kBlock, i, j-w, kBlock, size);
-            std::cout<<"size "<<size<<std::endl;
+            std::cout<<"size = "<<size<<std::endl;
+
             if(size)
                 sl.insert(sl.end(), cv->begin(), cv->end());
 
@@ -251,29 +259,19 @@ void solve(const std::string & input, const std::string & output){
 
         return;
     }
-
-
     time_t end = clock();
 
-
-
     std::cout.setf(std::ios::fixed);
-    std::cout<<"time : " << (float)(end - start) / CLOCKS_PER_SEC<<std::endl;
-
-
+    std::cout<<"Total time : " << (float)(end - start) / CLOCKS_PER_SEC<<std::endl;
 
 }
 
-
-
-
 int main(int argc, char* argv[]) {
    if(argc < 2){
-       std::cout<<"no parameters"<<std::endl;
+       std::cout<<"No parameters, specify input and output files"<<std::endl;
        return 1;
    }else{
-       solve("./in/" + std::string(argv[1])+".in", "./out/" + std::string(argv[1])+".out");
+       solve(std::string(argv[1]), std::string(argv[2]));
+       return 0;
    }
-
-   return 0;
 }

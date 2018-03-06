@@ -4,8 +4,9 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 public class Grid {
-    boolean[] grid;
-    int w;
+    private boolean[] grid;
+    private PApplet p;
+    private int w,h;
 
     public int getW() {
         return w;
@@ -14,9 +15,6 @@ public class Grid {
     public int getH() {
         return h;
     }
-
-    int h;
-    PApplet p;
 
     Grid(String[] s, PApplet p){
         grid = new boolean[s.length * s[0].length()];
